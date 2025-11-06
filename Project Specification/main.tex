@@ -1,0 +1,183 @@
+\documentclass[12pt, a4paper]{article}
+
+% --- Packages ---
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage{cite} % For bibliography citations
+\usepackage{array}
+\usepackage{natbib}  % Harvard style citations
+\usepackage{url}     % For URLs
+
+% --- Header and footer setup ---
+\pagestyle{fancy}
+\fancyhead[L]{Daniel Lai}
+\fancyhead[C]{}
+\fancyhead[R]{CS351 Computer Systems Engineering Project - Project Specification}
+
+\title{CS351 Project Specification \\
+Evaluating the Robustness of ML-Based Fraud Detection via Game Theory}
+\author{Daniel Lai 5529114}
+\date{October 2025}
+
+\begin{document}
+
+\maketitle
+
+\newpage
+
+% --- Problem Statement ---
+\section{Problem Statement}
+As technology becomes increasingly integrated into daily life, the benefits of improved convenience and service delivery are evident. However, this rapid adoption sometimes leads to overlooked security fundamentals, especially within older or legacy systems~\cite{nature2024fraud}. Nowhere is this more critical than in the financial sector, where the stakes are exceptionally high and sensitive information is constantly at risk~\cite{prove2025fraud}. 
+\newline
+The landscape of financial fraud is constantly evolving, with skilled attackers constantly developing new methods to bypass and compromise security mechanisms. Many current detection systems, built on traditional machine learning techniques, are vulnerable to advanced adversarial attacks - including poisoning (manipulating training data) and evasion (crafting inputs to deceive models)~\cite{acm2023adversarial, wipro2022resilient}. As a result, these systems face threats that their original designs did not anticipate. 
+\newline
+Evaluating fraud detection models solely on static datasets is therefore insufficient. Recent work has shown that adversarial training and dynamic evaluation frameworks can significantly enhance model robustness against worst-case perturbations, underscoring the need for adaptive defence strategies~\cite{dang2023improving}. Consequently, this project will model the strategic, iterative interactions between adversaries and defenders using a game-theoretic framework, with the goal of developing more resilient and practically deployable fraud detection systems.
+
+% --- Objectives ---
+\section{Objectives}
+This project aims to evaluate the robustness of machine-learning based fraud detection systems within a dynamic, adversarial context. By creating a simulated environment, it will model the strategic, iterative interaction between an adaptive attacker and an ML-based defender using a game-theoretic framework.\\
+\newline
+To achieve this, this project is broken down into a set of core deliverables and potential extensions:
+
+\subsection{Core Objectives}
+
+\textbf{Phase 1: Foundational Components}
+\begin{enumerate}
+    \item \textbf{Define a Specific Use Case}: Research and select a specific domain of financial fraud (e.g., credit card transaction fraud, insurance claim fraud) to serve as the context for the simulation. This will define the features and patterns to be modelled.
+    \item \textbf{Develop a Simulation Environment}: Build a Python simulator to generate a realistic time-series dataset of legitimate financial transactions based on defined user personas.
+    \item \textbf{Implement a Baseline ML Defender}: Train and benchmark machine learning classifiers on the simulated data to establish an effective baseline detection model.
+\end{enumerate}
+\textbf{Phase 2: Adversarial Analysis}
+\begin{enumerate}
+    \setcounter{enumi}{3}
+    \item \textbf{Design an Adaptive Adversary}: Create an attacker agent capable of applying subtle, evasive attack strategies designed to bypass the defender model.
+    \item \textbf{Evaluate and Visualise System Robustness}: Measure the defender model's performance degradation under adversarial attacks to identify and analyse its key vulnerabilities.
+\end{enumerate}
+\subsection{Possible Extensions}
+\begin{enumerate}
+    \item \textbf{Apply Game-Theoretic Analysis}: Model the attacker-defender interaction as a strategic game, analysing simulation results to identify potential equilibrium strategies.
+    \item \textbf{Model a Defender Retraining Loop}: Implement a feedback mechanism allowing the defender to retrain on detected attacks, simulating a dynamic security "arms race".
+\end{enumerate}
+
+% --- Methods & Methodology
+\section{Methods \& Methodology}
+This project will use an iterative and incremental development model, along with some agile properties. This approach will combine a structured, phased development process for building the system components with a formal research framework for the experimental analysis. 
+\subsection{Development}
+\begin{itemize}
+    \item The system will be built in stages. First, a simple simulator with one user persona will be developed. This will be followed by the baseline defender, and so on. This ensures that there is always a working, testable version of the system.
+    \item Each component will be refined through a cycle of design to implementation to testing and lastly refining. Initial results may show that the simulated transactions are too simplistic. The simulator will then be refined in a new iteration to add more complexity. This iterative process would be useful as the characteristics may evolve based on initial findings
+\end{itemize}
+\subsection{Research}
+\begin{itemize}
+    \item A literature review will be conducted to identify realistic user spending patterns and common evasive attack strategies. This will ensure the simulation is as realistic to real-world scenarios.
+    \item The simulator provides a controlled environment to test the hypothesis that ML models are vulnerable to specific evasive attacks. The independent variable will be the type and intensity of the attack, and the dependent variable will be the performance of the defender model
+    \item Performance metrics (accuracy, precision, recall, F1-score, and so on) will be compared before and after attacks. Statistical significance will be assessed where applicable. The findings from the models' performance will be statistically analysed to draw conclusions about the model's vulnerabilities and the effectiveness of different attack strategies.
+\end{itemize}
+\subsection{Project Management}
+\begin{itemize}
+    \item Git will be used for version control to manage source codes with Github to track changes and prevent data loss. 
+    \item Regular meetings and check-ins with the Project Supervisor will serve as checkpoints to discuss progress, advise and validate the project's direction.
+    \item A logging document to track accomplishments, progress and any issues that arose during the implementation of the project's objectives.
+\end{itemize}
+
+\newpage
+
+% --- Timetable
+\section{Timetable}
+The table below shows this project’s planned rough timeline, including all of the hard deadlines for the submissions. The durations in the timetable for the whole project are thought to be overestimated to allow slack for any unforeseen issues that may occur.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5} % Optional: increases row height for better spacing
+    \begin{tabular}{|c|p{11cm}|}
+        \hline
+        \textbf{Term / Week} & \textbf{Objective / Deadline} \\
+        \hline
+        T1 W1-2 & Initial Literature Review \& Finalise Plan \\
+                & \textbf{Project Specification Due (16th October)} \\
+        \hline
+        T1 W3-6 & \textbf{Phase 1}: Implement Transaction Simulator \\
+                & Design user personas, generate transaction data, and test output. \\
+        \hline
+        T1 W7-10 & \textbf{Phase 1}: Implement \& Train Baseline ML Defender \\
+                 & Benchmark model performance on clean, simulated data. \\
+        \hline
+        Winter Break & Buffer time for delayed objectives \\
+                     & Start Final Report \\
+        \hline
+        T2 W1-2 & Finalise Progress Report \\
+                & \textbf{Progress Report Due (22nd January)} \\
+        \hline
+        T2 W3-5 & \textbf{Phase 2}: Implement Adversarial Attacker \\
+                & Design and code evasive attack strategies. \\
+        \hline
+        T2 W6-9 & \textbf{Phase 2}: Run Robustness Evaluation Experiments \\
+                & Collate results and begin analysis. \\
+                & \textbf{Final Report Plan Due (13th March)} \\
+        \hline
+        Break & \textbf{Phase 3}: Intensive Write-up Period \\
+              & Finalise Final Report and Project Management Report. \\
+              & \textbf{Final Report Due (9th April)} \\
+              & \textbf{Project Management Report Due (9th April)} \\
+        \hline
+        T3 W1-2 & \textbf{Phase 4}: Viva Preparation \\
+                & Prepare presentation slides, potential demo, and practice. \\
+        \hline
+    \end{tabular}
+    \caption{Project Timetable}
+    \label{tab:my_timetable}
+\end{table}
+\newpage
+% --- Resources & Risks ---
+\section{Resources \& Risks}
+
+\subsection{Resources}
+The project will be developed using standard software and hardware, with no specialised equipment required.
+\begin{itemize}
+    \item \textbf{Hardware:} A personal computer with sufficient processing power and memory for training standard machine learning models.
+    \item \textbf{Software \& Libraries:} The development will be done primarily in Python. Key libraries will include:
+    \begin{itemize}
+        \item \texttt{Pandas} and \texttt{NumPy} for data generation and manipulation.
+        \item \texttt{Matplotlib} and \texttt{Seaborn} for creating charts and visualisations of model performance and attack affectiveness.
+        \item Standard machine learning libraries for implementing the machine learning models. Some examples include \texttt{Scikit-learn} and \texttt{PyTorch} 
+    \end{itemize}
+    \item \textbf{Data Source:} All transaction data will be synthetically generated by the custom-built simulator developed in Phase 1 of the project. This avoids the ethical and privacy constraints associated with real financial data.
+    \item \textbf{Version Control \& Documentation:} Source code will be managed with Git and hosted on a private GitHub repository. The project specification, reports, and final dissertation will be written in LaTeX using Overleaf.
+    \item \textbf{Storage:} Data sources, articles for reference, and other relevant documentation will be stored and backed up via Google Drive.
+\end{itemize}
+
+\newpage
+\subsection{Risks}
+A number of potential risks have been identified. The table below outlines these risks and the mitigation strategy for each.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|p{170pt}|p{250pt}|}
+        \hline
+        \textbf{Risk} & \textbf{Mitigation Strategy} \\
+        \hline
+        \textbf{Simulation Lacks Realism:} The synthetic data generated is too simplistic, making the fraud detection task trivial and undermining the validity of the results. & The simulator's design will be based on statistical properties found in real-world public datasets. The development will be iterative, allowing for refinement if initial results are not realistic enough. \\
+        \hline
+        \textbf{Technical Hurdles in Development:} Unforeseen bugs or complexities in developing the simulator or ML pipeline could cause significant delays. & The project will follow an iterative development model, allowing for early detection of issues. Buffer time is explicitly allocated in the project timetable to absorb minor delays. \\
+        \hline
+        \textbf{Loss or Failure of Equipment:} Hardware failure could lead to the loss of critical work and code. & All source code and documentation will be regularly backed up to remote cloud repositories (GitHub and Overleaf). \\
+        \hline
+        \textbf{Insufficient Model Performance:} The baseline ML models fail to achieve reasonable fraud detection accuracy, making robustness evaluation less meaningful and undermining the validity of adversarial attack testing. & Perform systematic hyperparameter tuning and feature engineering. If performance remains inadequate, revisit dataset selection and preprocessing steps. \\
+        \hline
+    \end{tabular}
+    \caption{Project Risks \& Mitigation Strategies}
+    \label{tab:risks}
+\end{table}
+
+% --- Legal, Social, Ethical and Professional Issues ---
+\section{Legal, Social, Ethical and Professional Issues}
+This project involves the evaluation of machine learning-based financial fraud detection systems under adversarial conditions. The implementation of adversarial attacks will be carefully designed to ensure that it poses no threat to real-world systems or society. 
+All experiments will be conducted in a controlled, academic environment using only synthetic data and simulated financial scenarios. The attack code will not be capable of targeting or interacting with any external or real financial systems. The project's intent is clearly documented as defensive research to improve system robustness, not to create malicious tools.
+
+\newpage
+\bibliographystyle{plain}
+\bibliography{references}  % references.bib file
+
+\end{document}
