@@ -1,5 +1,3 @@
-# simulator.py
-
 import pandas as pd
 import datetime
 from personas import Persona  
@@ -64,8 +62,8 @@ if all_transactions:
     print(f"\nDataFrame shape: {df.shape}")
 
     # Save to CSV
-    output_filename = 'simulated_transactions_v2.csv'
+    output_filename = 'synthetic_transactions.csv'
     df.to_csv(output_filename, index=False)
     print(f"\nData successfully saved to {output_filename}")
 else:
-    print("No transactions were generated. Check simulation logic.")
+    print("No transactions were generated.")
