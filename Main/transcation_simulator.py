@@ -1,13 +1,14 @@
 import pandas as pd
 import datetime
 from personas import Persona  
-from personas_profile import COMMUTER_PROFILE, STUDENT_PROFILE 
+from personas_profile import COMMUTER_PROFILE, STUDENT_PROFILE, HOMEBODY_PROFILE
 
 # INITIALIZING PERSONAS
 print("Initializing personas...")
 all_personas = []
-NUM_COMMUTERS = 10
-NUM_STUDENTS = 10
+NUM_COMMUTERS = 100
+NUM_STUDENTS = 100
+NUM_HOMEBODIES = 100
 
 for i in range(NUM_COMMUTERS):
     all_personas.append(
@@ -23,6 +24,13 @@ for i in range(NUM_STUDENTS):
                 profile=STUDENT_PROFILE)
     )
 
+for i in range(NUM_HOMEBODIES):
+    all_personas.append(
+        Persona(user_id=f"USER_H_{3001+i}",
+                card_id=f"CARD_H_{3001+i}_A",
+                profile=HOMEBODY_PROFILE)
+    )
+
 all_transactions = []
 transaction_id_counter = 1
 
@@ -35,9 +43,11 @@ for day_num in range(NUM_DAYS):
     current_date = start_date + datetime.timedelta(days=day_num)
     
     for persona in all_personas:
-        # Tell each persona to simulate its day
+        if day_num % 7 == 0 and day_num != 0:
+            persona.weekly_drift(drift_std=0.02)
+
         daily_txns, new_counter = persona.simulate_day(current_date, transaction_id_counter)
-        
+
         all_transactions.extend(daily_txns)
         transaction_id_counter = new_counter
 
