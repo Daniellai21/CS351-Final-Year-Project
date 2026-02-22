@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import datetime
-from merchants import MERCHANTS 
+from simulator.merchants import MERCHANTS 
 
 class Persona:
     def __init__(self, user_id, card_id, profile):

@@ -1,13 +1,19 @@
 import pandas as pd
 import datetime
-from personas import Persona  
-from personas_profile import COMMUTER_PROFILE, STUDENT_PROFILE, HOMEBODY_PROFILE
+import numpy as np
+import random
+from simulator.personas import Persona  
+from simulator.personas_profile import COMMUTER_PROFILE, STUDENT_PROFILE, HOMEBODY_PROFILE
+
+SEED = 42
+np.random.seed(SEED)
+random.seed(SEED)
 
 # INITIALIZING PERSONAS
 print("Initializing personas...")
 all_personas = []
-NUM_COMMUTERS = 100
-NUM_STUDENTS = 100
+NUM_COMMUTERS = 150
+NUM_STUDENTS = 150
 NUM_HOMEBODIES = 100
 
 for i in range(NUM_COMMUTERS):
@@ -72,7 +78,7 @@ if all_transactions:
     print(f"\nDataFrame shape: {df.shape}")
 
     # Save to CSV
-    output_filename = 'synthetic_transactions.csv'
+    output_filename = 'data/synthetic_transactions_v1.csv'
     df.to_csv(output_filename, index=False)
     print(f"\nData successfully saved to {output_filename}")
 else:
