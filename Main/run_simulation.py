@@ -4,6 +4,7 @@ import numpy as np
 import random
 from simulator.personas import Persona  
 from simulator.personas_profile import COMMUTER_PROFILE, STUDENT_PROFILE, HOMEBODY_PROFILE
+from simulator.fraud_injector import inject_fraud
 
 SEED = 42
 np.random.seed(SEED)
@@ -62,12 +63,13 @@ print(f"Simulation complete. Generated {len(all_transactions)} total transaction
 # CREATE AND SAVE DATAFRAME
 if all_transactions:
     df = pd.DataFrame(all_transactions)
+    df = inject_fraud(df, 0.02) 
 
     # Columns reordering
     column_order = [
         'Transaction_id', 'Timestamp', 'user_id', 'Card_id', 'home_country', 
         'Transaction amount', 'merchant_id', 'merchant_category',
-        'merchant_country', 'Channel', 'is_fraud'
+        'merchant_country', 'Channel', 'is_fraud', 'fraud_campaign'
     ]
     # Filter to only columns that exist (in case one was missed)
     final_columns = [col for col in column_order if col in df.columns]
@@ -76,6 +78,11 @@ if all_transactions:
     print("\n--- Sample of Generated Data ---")
     print(df.head())
     print(f"\nDataFrame shape: {df.shape}")
+
+    fraud_count = df['is_fraud'].sum()
+    total_count = len(df)
+    print(f"Total transactions: {total_count}, Fraudulent transactions: {fraud_count} ({(fraud_count/total_count)*100:.2f}%)")
+    print(df[df['is_fraud'] == 1]['fraud_campaign'].value_counts())
 
     # Save to CSV
     output_filename = 'data/synthetic_transactions_v1.csv'
