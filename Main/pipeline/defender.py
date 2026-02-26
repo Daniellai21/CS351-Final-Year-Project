@@ -21,9 +21,9 @@ def evaluate_model(model, X, y) -> dict:
     y_pred = (y_proba > 0.5).astype(int)
 
     metrics = {
-        'precision': precision_score(y, y_pred),
-        'recall': recall_score(y, y_pred),
-        'f1_score': f1_score(y, y_pred),
+        'precision': precision_score(y, y_pred, zero_division=0),
+        'recall': recall_score(y, y_pred, zero_division=0),
+        'f1_score': f1_score(y, y_pred, zero_division=0),
         'roc_auc': roc_auc_score(y, y_proba)
     }
     return metrics

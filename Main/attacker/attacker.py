@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 from abc import ABC, abstractmethod
+import warnings 
+warnings.filterwarnings('ignore', category=FutureWarning)
 
 class BaseAttacker(ABC):
     def __init__(self, name: str):
@@ -59,7 +61,7 @@ class TimeShiftAttacker(BaseAttacker):
         txn = txn.copy()
         
         seconds_shift = self.shift_hours * 3600
-        txn['Timestamp'] = txn['Timestamp'] + pd.Timedelta(seconds=seconds_shift)
+        txn['Timestamp'] = pd.to_datetime(txn['Timestamp']) + pd.Timedelta(seconds=seconds_shift)
 
         return txn
     

@@ -45,8 +45,8 @@ def compute_features(txn, user_history):
     return features
 
 def engineer_features(df):
-    df = df.sort_values('Timestamp').reset_index(drop=True)
     df['Timestamp'] = pd.to_datetime(df['Timestamp'])
+    df = df.sort_values('Timestamp').reset_index(drop=True)
 
     feature_rows = []
 

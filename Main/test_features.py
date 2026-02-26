@@ -4,6 +4,13 @@ from pipeline.feature_engineering import engineer_features
 df = pd.read_csv('data/synthetic_transactions_v1.csv')
 print(f"Raw data shape: {df.shape}")
 
+# Save raw test set before feature engineering
+df['Timestamp'] = pd.to_datetime(df['Timestamp'])
+cutoff = df['Timestamp'].quantile(0.8)
+raw_test_df = df[df['Timestamp'] > cutoff]
+raw_test_df.to_csv('data/raw_test_transactions.csv', index=False)
+print(f"Raw test set saved: {raw_test_df.shape}")
+
 featured_df = engineer_features(df)
 print(f"Featured data shape: {featured_df.shape}")
 print(featured_df.head())
