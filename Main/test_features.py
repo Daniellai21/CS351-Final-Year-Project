@@ -11,6 +11,11 @@ raw_test_df = df[df['Timestamp'] > cutoff]
 raw_test_df.to_csv('data/raw_test_transactions.csv', index=False)
 print(f"Raw test set saved: {raw_test_df.shape}")
 
+# Save raw train set before feature engineering
+raw_train_df = df[df['Timestamp'] <= cutoff]
+raw_train_df.to_csv('data/raw_train_transactions.csv', index=False)
+print(f"Raw train set saved: {raw_train_df.shape}")
+
 featured_df = engineer_features(df)
 print(f"Featured data shape: {featured_df.shape}")
 print(featured_df.head())
