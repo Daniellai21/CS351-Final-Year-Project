@@ -27,7 +27,6 @@ class BaseAttacker(ABC):
                 else:
                     perturbed_row = self.perturb_transaction(row.to_dict(), user_history)
                     perturbed_rows.append(perturbed_row)
-                    user_history.append(perturbed_row)
             return pd.DataFrame(perturbed_rows)
 
         perturbed_transaction = transaction.groupby('user_id').apply(perturb_group).reset_index(drop=True)
@@ -59,9 +58,10 @@ class TimeShiftAttacker(BaseAttacker):
 
     def perturb_transaction(self, txn: dict, user_history: list) -> dict:
         txn = txn.copy()
-        
         seconds_shift = self.shift_hours * 3600
-        txn['Timestamp'] = pd.to_datetime(txn['Timestamp']) + pd.Timedelta(seconds=seconds_shift)
+
+        new_time = pd.to_datetime(txn['Timestamp']) + pd.Timedelta(seconds=seconds_shift)
+        txn['Timestamp'] = new_time.strftime('%Y-%m-%d %H:%M:%S')
 
         return txn
     
