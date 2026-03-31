@@ -18,7 +18,8 @@ def build_user_profiles(df: pd.DataFrame) -> dict:
             'amount_std': user_df['Transaction amount'].std(),
             'typical_hour': pd.to_datetime(user_df['Timestamp']).dt.hour.mode()[0],
             'used_categories': set(user_df['merchant_category']),
-            'home_country': 'GB'
+            'home_country': 'GB',
+            'card_id': user_df['Card_id'].iloc[0]
         }
 
     return profiles
@@ -44,7 +45,7 @@ def generate_high_value_night_fraud(user_id: str, profile: dict, df: pd.DataFram
         'Transaction_id': None, 
         'Timestamp': datetime.datetime(fraud_date.year, fraud_date.month, fraud_date.day, hour, random.randint(0, 59), random.randint(0, 59)),   
         'user_id': user_id,
-        'Card_id': df[df['user_id'] == user_id].iloc[0]['Card_id'],         
+        'Card_id': profile['card_id'],         
         'home_country': profile['home_country'],
         'Transaction amount': amount,
         'merchant_id': random.choice(merchant_details['ids']),
@@ -81,7 +82,7 @@ def generate_velocity_fraud(user_id: str, profile: dict, df: pd.DataFrame) -> li
             'Transaction_id': None, 
             'Timestamp': base_time + datetime.timedelta(seconds=i*30),  
             'user_id': user_id,
-            'Card_id': df[df['user_id'] == user_id].iloc[0]['Card_id'],         
+            'Card_id': profile['card_id'],         
             'home_country': profile['home_country'],
             'Transaction amount': amount,
             'merchant_id': random.choice(merchant_details['ids']),
@@ -117,7 +118,7 @@ def generate_account_takeover_fraud(user_id: str, profile: dict, df: pd.DataFram
         'Transaction_id': None, 
         'Timestamp': datetime.datetime(fraud_date.year, fraud_date.month, fraud_date.day, hour, random.randint(0, 59), random.randint(0, 59)),   
         'user_id': user_id,
-        'Card_id': df[df['user_id'] == user_id].iloc[0]['Card_id'],         
+        'Card_id': profile['card_id'],         
         'home_country': profile['home_country'],
         'Transaction amount': amount,
         'merchant_id': random.choice(merchant_details['ids']),
@@ -149,7 +150,7 @@ def generate_geographic_anomaly_fraud(user_id: str, profile: dict, df: pd.DataFr
         'Transaction_id': None, 
         'Timestamp': datetime.datetime(fraud_date.year, fraud_date.month, fraud_date.day, hour, random.randint(0, 59), random.randint(0, 59)),   
         'user_id': user_id,
-        'Card_id': df[df['user_id'] == user_id].iloc[0]['Card_id'],         
+        'Card_id': profile['card_id'],         
         'home_country': profile['home_country'],
         'Transaction amount': amount,
         'merchant_id': random.choice(merchant_details['ids']),
