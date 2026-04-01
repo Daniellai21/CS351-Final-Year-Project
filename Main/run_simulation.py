@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 import random
 from simulator.personas import Persona  
-from simulator.personas_profile import COMMUTER_PROFILE, STUDENT_PROFILE, HOMEBODY_PROFILE
+from simulator.personas_profile import COMMUTER_PROFILE, STUDENT_PROFILE, HOMEBODY_PROFILE, PROFESSIONAL_PROFILE, RETIREE_PROFILE
 from simulator.fraud_injector import inject_fraud
 
 SEED = 42
@@ -16,6 +16,8 @@ all_personas = []
 NUM_COMMUTERS = 150
 NUM_STUDENTS = 150
 NUM_HOMEBODIES = 100
+NUM_PROFESSIONALS = 80
+NUM_RETIREES = 80
 
 for i in range(NUM_COMMUTERS):
     all_personas.append(
@@ -38,6 +40,20 @@ for i in range(NUM_HOMEBODIES):
                 profile=HOMEBODY_PROFILE)
     )
 
+for i in range(NUM_PROFESSIONALS):
+    all_personas.append(
+        Persona(user_id=f"USER_P_{4001+i}",
+                card_id=f"CARD_P_{4001+i}_A",
+                profile=PROFESSIONAL_PROFILE)
+    )
+
+for i in range(NUM_RETIREES):
+    all_personas.append(
+        Persona(user_id=f"USER_R_{5001+i}",
+                card_id=f"CARD_R_{5001+i}_A",
+                profile=RETIREE_PROFILE)
+    )
+
 all_transactions = []
 transaction_id_counter = 1
 
@@ -48,6 +64,9 @@ print(f"Starting simulation for {len(all_personas)} personas over {NUM_DAYS} day
 
 for day_num in range(NUM_DAYS):
     current_date = start_date + datetime.timedelta(days=day_num)
+
+    if day_num % 10 == 0:  # print every 10 days
+        print(f"  Simulating day {day_num + 1}/{NUM_DAYS} ({current_date})...")
     
     for persona in all_personas:
         if day_num % 7 == 0 and day_num != 0:
@@ -83,9 +102,11 @@ if all_transactions:
     total_count = len(df)
     print(f"Total transactions: {total_count}, Fraudulent transactions: {fraud_count} ({(fraud_count/total_count)*100:.2f}%)")
     print(df[df['is_fraud'] == 1]['fraud_campaign'].value_counts())
+    print("\nMerchant country distribution (legitimate only):")
+    print(df[df['is_fraud'] == 0]['merchant_country'].value_counts())
 
     # Save to CSV
-    output_filename = 'data/synthetic_transactions_v1.csv'
+    output_filename = 'data/synthetic_transactions_v2.csv'
     df.to_csv(output_filename, index=False)
     print(f"\nData successfully saved to {output_filename}")
 else:

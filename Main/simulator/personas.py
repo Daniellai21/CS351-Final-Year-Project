@@ -3,6 +3,21 @@ import random
 import datetime
 from simulator.merchants import MERCHANTS 
 
+CATEGORY_MIN_AMOUNT = {
+    'food_delivery': 5.00,
+    'dining_out': 5.00,
+    'foreign_dining': 5.00,
+    'pharmacy': 1.50,
+    'coffee': 1.50,
+    'groceries': 2.00,
+    'lunch': 2.00,
+    'transport_public': 0.50,
+    'transport_ride_hail': 3.00,
+    'online_shopping': 1.00,
+    'subscription': 2.99,
+    'gym': 5.00,
+    }
+
 class Persona:
     def __init__(self, user_id, card_id, profile):
         """Initializes a persona from a behavior profile."""
@@ -15,7 +30,8 @@ class Persona:
         self.once_per_day_categories = {
             "lunch",
             "groceries",
-            "utility_bill"
+            "utility_bill",
+            "pharmacy"
         }
         self.trip_config = {
             "trigger_category": "groceries",
@@ -48,6 +64,22 @@ class Persona:
                 {"cat": "subscription", "day": 12},
                 {"cat": "phone_bill", "day": 24},
                 {"cat": "utility_bill", "day": 6},
+            ]
+        elif self.user_id.startswith("USER_P_"):
+        # professional: 2 subs + phone + gym monthly + utilities
+            self.recurring = [
+                {"cat": "subscription", "day": 1},
+                {"cat": "subscription", "day": 15},
+                {"cat": "phone_bill", "day": 28},
+                {"cat": "utility_bill", "day": 3},
+                {"cat": "gym", "day": 1},
+            ]
+        elif self.user_id.startswith("USER_R_"):
+            # retiree: 1 sub + phone + utilities
+            self.recurring = [
+                {"cat": "subscription", "day": 8},
+                {"cat": "phone_bill", "day": 14},
+                {"cat": "utility_bill", "day": 1},
             ]
         else:
             # homebody: 1 sub + phone + utilities
@@ -85,6 +117,10 @@ class Persona:
                 if cat in {"transport_public", "transport_ride_hail"}:
                     if category_counts_today.get(cat, 0) >= 4:
                         continue
+
+                # Coffee shops are closed 1-4am
+                if cat == 'coffee' and 1 <= hour <= 4:
+                    continue
                 
                 # Get the probability of this action at this hour
                 if day_type in rules:
@@ -100,7 +136,8 @@ class Persona:
                     amount = self._sample_amount(
                         rules['amount_mean'],
                         rules['amount_std'],
-                        skewed=(cat in self.skewed_amount_categories)
+                        skewed=(cat in self.skewed_amount_categories),
+                        cat=cat
                     )
                     
                     # 2. Get merchant details
@@ -109,10 +146,15 @@ class Persona:
                     # 80%: use preferred merchant, 20%: choose other merchant
                     merchant_id = self._choose_merchant(cat, merchant_details)
                     
-                    # 3. Create timestamp
+                    # 3. Resolve merchant country (handle foreign sentinel)
+                    merchant_country = merchant_details['country']
+                    if merchant_country == "FOREIGN":
+                        merchant_country = random.choice(["FR", "DE", "ES", "IT", "US"])
+                    
+                    # 4. Create timestamp
                     timestamp = self._create_random_time(current_date, hour)
                     
-                    # 4. Append transaction
+                    # 5. Append transaction
                     daily_transactions.append({
                         'Transaction_id': transaction_id_counter,
                         'Timestamp': timestamp,
@@ -122,7 +164,7 @@ class Persona:
                         'Transaction amount': amount,
                         'merchant_id': merchant_id,
                         'merchant_category': cat,
-                        'merchant_country': merchant_details['country'],
+                        'merchant_country': merchant_country,
                         'Channel': merchant_details['channel'],
                         'is_fraud': 0
                     })
@@ -215,7 +257,8 @@ class Persona:
             amount = self._sample_amount(
                 rules['amount_mean'],
                 rules['amount_std'],
-                skewed=(addon_cat in self.skewed_amount_categories)
+                skewed=(addon_cat in self.skewed_amount_categories),
+                cat=addon_cat
             )
 
             # Merchant (sticky)
@@ -223,6 +266,11 @@ class Persona:
 
             # Timestamp clustered near the groceries time
             ts = self._random_time_near(base_timestamp, cfg["addon_time_window_minutes"])
+
+            # resolve country
+            merchant_country = merchant_details['country']
+            if merchant_country == 'FOREIGN':
+                merchant_country = random.choice(['FR', 'DE', 'ES', 'IT', 'US'])
 
             extra_txns.append({
                 'Transaction_id': transaction_id_counter,
@@ -233,7 +281,7 @@ class Persona:
                 'Transaction amount': amount,
                 'merchant_id': merchant_id,
                 'merchant_category': addon_cat,
-                'merchant_country': merchant_details['country'],
+                'merchant_country': merchant_country,
                 'Channel': merchant_details['channel'],
                 'is_fraud': 0
             })
@@ -281,7 +329,8 @@ class Persona:
             amount = self._sample_amount(
                 rules['amount_mean'],
                 rules['amount_std'],
-                skewed=(cat in self.skewed_amount_categories)
+                skewed=(cat in self.skewed_amount_categories),
+                cat=cat
             )
 
             # time jitter (usually early morning online billing)
@@ -290,6 +339,11 @@ class Persona:
 
             # merchant stickiness applies here too
             merchant_id = self._choose_merchant(cat, merchant_details)
+
+            # resolve country
+            merchant_country = merchant_details['country']
+            if merchant_country == 'FOREIGN':
+                merchant_country = random.choice(['FR', 'DE', 'ES', 'IT', 'US'])
 
             txns.append({
                 'Transaction_id': transaction_id_counter,
@@ -300,7 +354,7 @@ class Persona:
                 'Transaction amount': amount,
                 'merchant_id': merchant_id,
                 'merchant_category': cat,
-                'merchant_country': merchant_details['country'],
+                'merchant_country': merchant_country,
                 'Channel': merchant_details['channel'],
                 'is_fraud': 0
             })
@@ -311,7 +365,7 @@ class Persona:
 
         return txns, transaction_id_counter
     
-    def _sample_amount(self, mean, std, skewed=False):
+    def _sample_amount(self, mean, std, skewed=False, cat=None):
         """
         Samples a transaction amount.
         - If skewed=False: normal distribution (tight, symmetric)
@@ -319,11 +373,12 @@ class Persona:
         """
         if not skewed:
             val = np.random.normal(mean, std)
-            return round(max(0.01, val), 2)
         else:
             # Lognormal with similar scale but long right tail
             # We ignore std directly and control shape via sigma
             sigma = 0.6
             mu = np.log(max(mean, 0.1)) - 0.5 * sigma**2
             val = np.random.lognormal(mu, sigma)
-            return round(max(0.01, val), 2)
+        
+        min_amount = CATEGORY_MIN_AMOUNT.get(cat, 0.01)
+        return round(max(min_amount, val), 2)

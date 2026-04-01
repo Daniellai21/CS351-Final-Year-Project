@@ -52,5 +52,25 @@ MERCHANTS = {
         'ids': ['MERCH_UBER_UK', 'MERCH_BOLT_UK'],
         'channel': 'Online',
         'country': 'GB'
+    },
+    'gym': {
+        'ids': ['MERCH_PUREGYM_01', 'MERCH_DAVIDLLOYD_02', 'MERCH_JDGYM_03'],
+        'channel': 'POS',
+        'country': 'GB'
+    },
+    'pharmacy': {
+        'ids': ['MERCH_BOOTS_01', 'MERCH_HOLLAND&BARRETT_02', 'MERCH_SUPERDRUG_03'],
+        'channel': 'POS',
+        'country': 'GB'
+    },
+    'dining_out': {
+        'ids': ['MERCH_NANDO_01', 'MERCH_WINGSTOP_02', 'MERCH_WEATHERSPOON_03'],
+        'channel': 'POS',
+        'country': 'GB'
+    },
+    'foreign_dining': {
+        'ids': ['MERCH_RESTAURANT_FR_01', 'MERCH_RESTAURANT_DE_02', 'MERCH_RESTAURANT_ES_03'],
+        'channel': 'POS',
+        'country': 'FOREIGN'
     }
 }

@@ -33,6 +33,8 @@ def generate_high_value_night_fraud(user_id: str, profile: dict, df: pd.DataFram
         amount = profile['amount_mean'] * 3
     else:
         amount = profile['amount_mean'] + 3 * profile['amount_std']
+        amount = amount * np.random.uniform(0.8, 1.2)  # add some randomness
+        amount = round(max(0.01, amount), 2)  
     hour = random.randint(1, 5)
     merchant_cat = random.choice(list(MERCHANTS.keys()))
     merchant_details = MERCHANTS[merchant_cat]
