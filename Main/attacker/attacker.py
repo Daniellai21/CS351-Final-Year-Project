@@ -46,23 +46,28 @@ class AmountScalingAttacker(BaseAttacker):
         amount = [h['Transaction amount'] for h in user_history]
         mean_amount = np.mean(amount)
         
-        noise = np.random.normal(0, 0.05 * mean_amount)
+        noise = np.random.normal(0, 0.12 * mean_amount)
         txn['Transaction amount'] = max(0, mean_amount * self.scale_factor + noise)
 
         return txn
     
 class TimeShiftAttacker(BaseAttacker):
-    def __init__(self, shift_hours: float = 2.0):
+    def __init__(self):
         super().__init__(name='time_shift')
-        self.shift_hours = shift_hours
 
     def perturb_transaction(self, txn: dict, user_history: list) -> dict:
         txn = txn.copy()
-        seconds_shift = self.shift_hours * 3600
+        hour = pd.to_datetime(txn['Timestamp']).hour
+        
+        if hour in [0, 1, 2, 3, 4, 5]:  
+            # night fraud - shift to daytime
+            shift_seconds = (7 - hour) * 3600
+        else:
+            # day fraud
+            shift_seconds = np.random.randint(-3600, 3600)
 
-        new_time = pd.to_datetime(txn['Timestamp']) + pd.Timedelta(seconds=seconds_shift)
+        new_time = pd.to_datetime(txn['Timestamp']) + pd.Timedelta(seconds=shift_seconds)
         txn['Timestamp'] = new_time.strftime('%Y-%m-%d %H:%M:%S')
-
         return txn
     
 class CategoryMimicryAttacker(BaseAttacker):
