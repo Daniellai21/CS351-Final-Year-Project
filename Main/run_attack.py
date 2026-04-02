@@ -1,5 +1,5 @@
 import pandas as pd
-from attacker.attacker import AmountScalingAttacker, TimeShiftAttacker, CategoryMimicryAttacker, CombinedAttacker
+from attacker.attacker import AmountScalingAttacker, TimeShiftAttacker, CategoryMimicryAttacker, CombinedAttacker, VelocitySpacingAttacker
 from pipeline.feature_engineering import engineer_features
 
 df = pd.read_csv('data/raw_test_transactions.csv')
@@ -9,6 +9,7 @@ attackers = [
     AmountScalingAttacker(),
     TimeShiftAttacker(),
     CategoryMimicryAttacker(),
+    VelocitySpacingAttacker(),
     CombinedAttacker()
 ]
 

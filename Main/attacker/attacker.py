@@ -85,6 +85,29 @@ class CategoryMimicryAttacker(BaseAttacker):
 
         return txn
     
+class VelocitySpacingAttacker(BaseAttacker):
+    def __init__(self, min_gap_seconds: int = 4000):
+        super().__init__(name='velocity_spacing')
+        self.min_gap_seconds = min_gap_seconds
+
+    def perturb_transaction(self, txn: dict, user_history: list) -> dict:
+        txn = txn.copy()
+
+        if not user_history:
+            return txn
+        
+        # find the most recent transaction time
+        last_txn_time = pd.to_datetime(user_history[-1]['Timestamp'])
+        current_txn_time = pd.to_datetime(txn['Timestamp'])
+        gap = (current_txn_time - last_txn_time).total_seconds()
+
+        # if transactions are too close to the last one, space it out
+        if gap < self.min_gap_seconds:
+            new_time = last_txn_time + pd.Timedelta(seconds=self.min_gap_seconds)
+            txn['Timestamp'] = new_time.strftime('%Y-%m-%d %H:%M:%S')
+
+        return txn
+    
 class CombinedAttacker(BaseAttacker):
 
     def __init__(self):
@@ -92,6 +115,7 @@ class CombinedAttacker(BaseAttacker):
         self.amount_scaling_attacker = AmountScalingAttacker()
         self.time_shift_attacker = TimeShiftAttacker()
         self.category_mimicry_attacker = CategoryMimicryAttacker()
+        self.velocity_spacing_attacker = VelocitySpacingAttacker()
 
     def perturb_transaction(self, txn: dict, user_history: list) -> dict:
         txn = txn.copy()
@@ -99,5 +123,6 @@ class CombinedAttacker(BaseAttacker):
         txn = self.amount_scaling_attacker.perturb_transaction(txn, user_history)
         txn = self.time_shift_attacker.perturb_transaction(txn, user_history)
         txn = self.category_mimicry_attacker.perturb_transaction(txn, user_history)
+        txn = self.velocity_spacing_attacker.perturb_transaction(txn, user_history)
 
         return txn
