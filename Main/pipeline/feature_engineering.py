@@ -15,25 +15,24 @@ def compute_features(txn, user_history):
     if user_history:
         amounts = [h['Transaction amount'] for h in user_history]
         mean_amount = np.mean(amounts)
-        if len(amounts) > 1:
-            std_amount = np.std(amounts)
-        else:
-            std_amount = 0
-        features['amount_zscore'] = (txn['Transaction amount'] - mean_amount) / std_amount if std_amount > 0 else 0
+        std_amount = np.std(amounts) if len(amounts) > 1 else 0
+        raw_zscore = (txn['Transaction amount'] - mean_amount) / std_amount if std_amount > 0 else 0
+        features['amount_zscore'] = float(np.clip(raw_zscore, -5, 5)) 
     else:
         features['amount_zscore'] = 0
 
     # Feature 2: transactions in last 1 hour
     features['transactions_last_1h'] = sum(1 for h in user_history if 0 < (txn['Timestamp'] - h['Timestamp']).total_seconds() <= 3600)
 
-    # Feature 3: transactions in last 24 hours
-    features['transactions_last_24h'] = sum(1 for h in user_history if 0 < (txn['Timestamp'] - h['Timestamp']).total_seconds() <= 86400)
+    # Feature 3: total amount spent in last 24 hours
+    features['amount_sum_last_24h'] = sum(h['Transaction amount'] for h in user_history if 0 < (txn['Timestamp'] - h['Timestamp']).total_seconds() <= 86400)
 
-    # Feature 4: time since last transaction
+    # Feature 4: time since last transaction + log transform
     if user_history:
-        features['time_since_last_txn'] = (txn['Timestamp'] - user_history[-1]['Timestamp']).total_seconds()
+        time_since = (txn['Timestamp'] - user_history[-1]['Timestamp']).total_seconds()
+        features['log_time_since_last_txn'] = np.log1p(time_since)
     else:
-        features['time_since_last_txn'] = 0
+        features['log_time_since_last_txn'] = 0
 
     # Feature 5: is it a new category for the user
     seen_categories = set(h['merchant_category'] for h in user_history)
@@ -41,6 +40,12 @@ def compute_features(txn, user_history):
 
     # Feature 6: is it a foreign country
     features['is_foreign'] = int(txn['merchant_country'] != 'GB')
+
+    # Feature 7: hour of day
+    features['hour_of_day'] = txn['Timestamp'].hour
+
+    # Feature 8: is night (1am-5am)
+    features['is_night'] = int(txn['Timestamp'].hour in [0, 1, 2, 3, 4, 5])
 
     return features
 
@@ -62,4 +67,3 @@ def engineer_features(df):
             user_history.append(txn)
 
     return pd.DataFrame(feature_rows)
-

@@ -21,5 +21,5 @@ print(f"Featured data shape: {featured_df.shape}")
 print(featured_df.head())
 print(featured_df.describe())
 
-featured_df.to_csv('data/featured_transactions_v1.csv', index=False)
+featured_df.to_csv('data/featured_transactions_v2.csv', index=False)
 print("Featured transactions saved!")
