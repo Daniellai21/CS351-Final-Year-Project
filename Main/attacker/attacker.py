@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from abc import ABC, abstractmethod
+from pipeline.feature_engineering import compute_features
 import warnings 
 warnings.filterwarnings('ignore', category=FutureWarning)
 
@@ -126,3 +127,40 @@ class CombinedAttacker(BaseAttacker):
         txn = self.velocity_spacing_attacker.perturb_transaction(txn, user_history)
 
         return txn
+    
+class ScoreAwareAttacker(BaseAttacker):
+    """An adaptive attacker that uses the model's predicted probabilities to guide its perturbations."""
+    def __init__(self, base_attacker, model, scaler, feature_cols):
+        super().__init__(name=f'score_aware_{base_attacker.name}')
+        self.base_attacker = base_attacker
+        self.model = model
+        self.scaler = scaler
+        self.feature_cols = feature_cols
+
+    def update_model(self, model):
+        """Update the queried model - called after each retraining round"""
+        self.model = model
+    
+    def perturb_transaction(self, txn: dict, user_history: list) -> dict:
+        # get original suspicion score
+        original_score = self._get_score(txn, user_history)
+
+        # apply base attacker perturbation
+        perturbed_txn = self.base_attacker.perturb_transaction(txn, user_history)
+
+        # get perturbed suspicion score
+        perturbed_score = self._get_score(perturbed_txn, user_history)
+
+        # only commit if perturbation reduces the score
+        if perturbed_score < original_score:
+            return perturbed_txn
+        else:
+            return txn
+        
+    def _get_score(self, txn: dict, user_history: list) -> float:
+        """Compute the model's fraud probability for a given transaction"""
+        features = compute_features(txn, user_history)
+        feature_vector = pd.DataFrame([[features.get(col, 0) for col in self.feature_cols]], columns=self.feature_cols)
+        scaled = self.scaler.transform(feature_vector)
+        return self.model.predict_proba(scaled)[0][1]
+        
