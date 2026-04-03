@@ -2,55 +2,119 @@
 import pandas as pd
 import numpy as np
 import joblib
+from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import precision_recall_curve
 from pipeline.feature_engineering import engineer_features
-from pipeline.defender import evaluate_model, predict
-from attacker.attacker import AmountScalingAttacker, TimeShiftAttacker, CategoryMimicryAttacker, CombinedAttacker
+from pipeline.defender import predict
+from attacker.attacker import AmountScalingAttacker, TimeShiftAttacker, CategoryMimicryAttacker, VelocitySpacingAttacker, CombinedAttacker
 
-# load raw train and test data
+# 1. Load raw train and test data
 raw_train_df = pd.read_csv('data/raw_train_transactions.csv')
 raw_test_df = pd.read_csv('data/raw_test_transactions.csv')
+raw_test_df = raw_test_df.sort_values('Timestamp').reset_index(drop=True) # Ensure chronological order for time-based attacks
 
+# 2. Split test into Feedback (for learning) and Holdout (for final evaluation)
+cutoff_idx = int(len(raw_test_df) * 0.5)
+feedback_df = raw_test_df.iloc[:cutoff_idx].copy()
+holdout_df = raw_test_df.iloc[cutoff_idx:].copy()
+
+# 3. Engineer initial training set
 featured_train_df = engineer_features(raw_train_df)
 
-# set up scaler, attackers, models
+# 4. Set up scaler, attackers, models
 model_names = ['lr_balanced', 'lr_naive', 'rf_balanced', 'rf_naive', 'xgb_balanced', 'xgb_naive']
-models = {name: joblib.load(f'results/models/{name}.pkl') for name in model_names}
+models_original = {name: joblib.load(f'results/models/{name}.pkl') for name in model_names}
 scaler = joblib.load('results/models/scaler.pkl')
+feature_cols = ['amount_zscore', 'transactions_last_1h', 'amount_sum_last_24h', 'log_time_since_last_txn', 'is_new_category', 'is_foreign', 'hour_of_day', 'is_night']
 
 attackers = [
     AmountScalingAttacker(),
     TimeShiftAttacker(),
     CategoryMimicryAttacker(),
+    VelocitySpacingAttacker(),
     CombinedAttacker()
 ]
 
-# define feature cols
-feature_cols = ['amount_zscore', 'transactions_last_1h', 'transactions_last_24h', 'time_since_last_txn', 'is_new_category', 'is_foreign']
+def get_clean_threshold(model, X, y):
+    """Get optimal F1threshold from clean data"""
+    y_proba = model.predict_proba(X)[:, 1]
+    p, r, thresholds = precision_recall_curve(y, y_proba)
+    f1s = 2 * (p * r) / (p + r + 1e-9)
+    return thresholds[f1s[:-1].argmax()]
+
+def evaluate_at_threshold(model, X, y, threshold):
+    """Evaluate using a fixed threshold"""
+    y_proba = model.predict_proba(X)[:, 1]
+    y_pred = (y_proba >= threshold).astype(int)
+    return {
+        'precision': precision_score(y, y_pred, zero_division=0),
+        'recall': recall_score(y, y_pred, zero_division=0),
+        'f1_score': f1_score(y, y_pred, zero_division=0),
+        'roc_auc': roc_auc_score(y, y_proba)
+    }
+
+print("Pre-computing attacked datasets...")
+attacked_data = {}
+for attacker in attackers:
+    print(f" - Generating {attacker.name}...")
+    attacked_data[attacker.name] = {
+        'feedback': engineer_features(attacker.attack(feedback_df)),
+        'holdout': engineer_features(attacker.attack(holdout_df))
+    }
+
+# Give every Model-Attacker pair its own training set and model copy
+training_states = {}
+model_states = {}
+
+for attacker in attackers:
+    for model_name, model in models_original.items():
+        state_key = (attacker.name, model_name)
+        training_states[state_key] = featured_train_df.copy() # Independent copy of train data
+        
+        # Reload a fresh copy of the model for this specific simulation timeline
+        model_states[state_key] = joblib.load(f'results/models/{model_name}.pkl')
+
+# compute clean featured holdout once
+featured_holdout_df = engineer_features(holdout_df)
+X_holdout_clean = pd.DataFrame(scaler.transform(featured_holdout_df[feature_cols]), columns=feature_cols)
+y_holdout_clean = featured_holdout_df['is_fraud']
+
+print("Computing fixed thresholds...")
+fixed_thresholds = {}
+for attacker in attackers:
+    for model_name in model_names:
+        state_key = (attacker.name, model_name)
+        model = model_states[state_key]
+        fixed_thresholds[state_key] = get_clean_threshold(model, X_holdout_clean, y_holdout_clean)
+        print(f"  {model_name} vs {attacker.name}: threshold = {fixed_thresholds[state_key]:.3f}")
 
 results = []
 
-# retraining loop (max 10 rounds)
-for round in range(10):
-    print(f"Round {round + 1}")
+for round_num in range(5):
+    print(f"\n--- Round {round_num + 1} ---")
     
-    # for each attacker:
     for attacker in attackers:
-        for model_name, model in models.items():
-            print(f"Evaluating {model_name} against {attacker.name} attack")
+        
+        # Grab the pre-computed datasets for this attacker
+        attacked_feedback_df = attacked_data[attacker.name]['feedback']
+        attacked_holdout_df = attacked_data[attacker.name]['holdout']
+        
+        X_holdout = pd.DataFrame(scaler.transform(attacked_holdout_df[feature_cols]), columns=feature_cols)
+        y_holdout = attacked_holdout_df['is_fraud']
+        X_feedback = pd.DataFrame(scaler.transform(attacked_feedback_df[feature_cols]), columns=feature_cols)
 
-            # attack test data
-            attacked_test_df = attacker.attack(raw_test_df)
+        for model_name in model_names:
+            state_key = (attacker.name, model_name)
+            
+            # Grab the specific model and training data for this timeline
+            current_model = model_states[state_key]
+            current_train_df = training_states[state_key]
 
-            # feature engineer attacked test data
-            attacked_test_df = engineer_features(attacked_test_df)
-
-            # evaluate defender → record metrics
-            X_attacked = pd.DataFrame(scaler.transform(attacked_test_df[feature_cols]), columns=feature_cols)
-            y_attacked = attacked_test_df['is_fraud']
-            metrics = evaluate_model(model, X_attacked, y_attacked)
+            # 1. Evaluate defender on Holdout -> record metrics
+            metrics = evaluate_at_threshold(current_model, X_holdout, y_holdout, fixed_thresholds[state_key])
 
             results.append({
-                'round': round,
+                'round': round_num,
                 'attacker': attacker.name,
                 'model': model_name,
                 'recall': metrics['recall'],
@@ -59,32 +123,33 @@ for round in range(10):
                 'roc_auc': metrics['roc_auc']
             })
 
-            # find detected attacks
-            predictions = predict(model, X_attacked)
-            detected = attacked_test_df[(attacked_test_df['is_fraud'] == 1) & (predictions == 1)]
+            # 2. Find detected attacks in the FEEDBACK set to learn from
+            predictions = predict(current_model, X_feedback)
+            detected = attacked_feedback_df[(attacked_feedback_df['is_fraud'] == 1) & (predictions == 1)]
 
-            combined_train = pd.concat([featured_train_df, detected])
+            # 3. Accumulate knowledge independently
+            current_train_df = pd.concat([current_train_df, detected]).drop_duplicates(subset='Transaction_id')
+            training_states[state_key] = current_train_df # Save it back
 
-            # scale it
-            X_train_new = pd.DataFrame(scaler.transform(combined_train[feature_cols]),columns=feature_cols)
-            y_train_new = combined_train['is_fraud']
+            # 4. Scale and retrain this specific model
+            X_train_new = pd.DataFrame(scaler.transform(current_train_df[feature_cols]), columns=feature_cols)
+            y_train_new = current_train_df['is_fraud']
+            current_model.fit(X_train_new, y_train_new)
+            
+            # Save the retrained model back to the state dictionary
+            model_states[state_key] = current_model
 
-            # retrain
-            model.fit(X_train_new, y_train_new)
-    
-    # check for equilibrium → break if reached
-    current_recall = np.mean([r['recall'] for r in results if r['round'] == round])
-
-    if round > 0:
-        previous_recall = np.mean([r['recall'] for r in results if r['round'] == round - 1])
-        recall_diff = abs(current_recall - previous_recall)
-        if recall_diff < 0.005:
-            print("Equilibrium reached!")
+    if round_num > 0:
+        equilibrium = True
+        for attacker in attackers:
+            curr = np.mean([r['recall'] for r in results if r['round'] == round_num and r['attacker'] == attacker.name])
+            prev = np.mean([r['recall'] for r in results if r['round'] == round_num - 1 and r['attacker'] == attacker.name])
+            if abs(curr - prev) >= 0.005:
+                equilibrium = False
+                break
+        if equilibrium:
+            print(f"\nEquilibrium reached at Round {round_num + 1}!")
             break
-
-for model_name, model in models.items():
-    joblib.dump(model, f'results/models/{model_name}_retrained.pkl')
-print("Retrained models saved!")
 
 # save results
 results_df = pd.DataFrame(results)
