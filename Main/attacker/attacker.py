@@ -159,8 +159,19 @@ class ScoreAwareAttacker(BaseAttacker):
         
     def _get_score(self, txn: dict, user_history: list) -> float:
         """Compute the model's fraud probability for a given transaction"""
-        features = compute_features(txn, user_history)
+        txn = txn.copy()
+        txn['Timestamp'] = pd.to_datetime(txn['Timestamp'])
+        txn.setdefault('user_id', 'unknown')
+        txn.setdefault('fraud_campaign', None)
+
+        converted_history = []
+        for h in user_history:
+            h_copy = h.copy()
+            h_copy['Timestamp'] = pd.to_datetime(h_copy['Timestamp'])
+            converted_history.append(h_copy)
+            
+        features = compute_features(txn, converted_history)
         feature_vector = pd.DataFrame([[features.get(col, 0) for col in self.feature_cols]], columns=self.feature_cols)
-        scaled = self.scaler.transform(feature_vector)
+        scaled = pd.DataFrame(self.scaler.transform(feature_vector), columns=self.feature_cols)
         return self.model.predict_proba(scaled)[0][1]
         
