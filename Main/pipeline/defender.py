@@ -15,10 +15,10 @@ def predict_proba(model, X):
     """Return fraud probability scores"""
     return model.predict_proba(X)[:, 1]
 
-def evaluate_model(model, X, y) -> dict:
+def evaluate_model(model, X, y, threshold=0.5) -> dict:
     """Return dictionary of metrics without printing"""
     y_proba = predict_proba(model, X)
-    y_pred = (y_proba > 0.5).astype(int)
+    y_pred = (y_proba > threshold).astype(int)
 
     metrics = {
         'precision': precision_score(y, y_pred, zero_division=0),

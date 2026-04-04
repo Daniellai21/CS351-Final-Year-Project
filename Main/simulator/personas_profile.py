@@ -79,7 +79,7 @@ STUDENT_PROFILE = {
             'amount_std': 0.50
         },
         'food_delivery': {
-            'prob_weekday': create_hourly_prob(peak_hour=22, std_dev=1.5, max_prob=0.7), # Late night peak
+            'prob_weekday': create_hourly_prob(peak_hour=22, std_dev=1.5, max_prob=0.35), # Late night peak
             'prob_weekend': create_hourly_prob(peak_hour=23, std_dev=1.5, max_prob=0.4),
             'amount_mean': 25.00,
             'amount_std': 5.00

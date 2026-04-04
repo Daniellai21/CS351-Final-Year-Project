@@ -186,7 +186,7 @@ for round_num in range(8):
         })
 
         # learn from detected attacks
-        predictions = predict(current_model, X_feedback)
+        predictions = predict(current_model, X_feedback, threshold=fixed_thresholds[state_key])
         detected = attacked_feedback_df[(attacked_feedback_df['is_fraud'] == 1) & (predictions == 1)]
         current_train_df = pd.concat([current_train_df, detected]).drop_duplicates(subset='Transaction_id')
         training_states[state_key] = current_train_df # Save it back
