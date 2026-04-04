@@ -21,7 +21,7 @@ COMMUTER_PROFILE = {
             'amount_std': 0.50
         },
         'lunch': {
-            'prob_weekday': create_hourly_prob(peak_hour=12.5, std_dev=0.5, max_prob=0.95),
+            'prob_weekday': create_hourly_prob(peak_hour=12.5, std_dev=1, max_prob=0.75),
             'prob_weekend': create_hourly_prob(peak_hour=13, std_dev=3, max_prob=0.2),
             'amount_mean': 12.00,
             'amount_std': 2.00
@@ -80,7 +80,7 @@ STUDENT_PROFILE = {
         },
         'food_delivery': {
             'prob_weekday': create_hourly_prob(peak_hour=22, std_dev=1.5, max_prob=0.35), # Late night peak
-            'prob_weekend': create_hourly_prob(peak_hour=23, std_dev=1.5, max_prob=0.4),
+            'prob_weekend': create_hourly_prob(peak_hour=23, std_dev=1.5, max_prob=0.25),
             'amount_mean': 25.00,
             'amount_std': 5.00
         },
@@ -170,7 +170,7 @@ PROFESSIONAL_PROFILE = {
             'amount_std': 1.00
         },
         'dining_out': {
-            'prob_weekday': create_hourly_prob(peak_hour=13, std_dev=1, max_prob=0.7),
+            'prob_weekday': create_hourly_prob(peak_hour=13, std_dev=1, max_prob=0.4),
             'prob_weekend': create_hourly_prob(peak_hour=19, std_dev=2, max_prob=0.6),
             'amount_mean': 35.00,
             'amount_std': 15.00
@@ -237,7 +237,7 @@ RETIREE_PROFILE = {
             'amount_std': 20.00
         },
         'pharmacy': {
-            'prob_weekday': create_hourly_prob(peak_hour=10, std_dev=2, max_prob=0.08),
+            'prob_weekday': create_hourly_prob(peak_hour=10, std_dev=2, max_prob=0.15),
             'prob_weekend': create_hourly_prob(peak_hour=11, std_dev=2, max_prob=0.05),
             'amount_mean': 18.00,
             'amount_std': 8.00
