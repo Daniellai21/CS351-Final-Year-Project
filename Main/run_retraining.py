@@ -140,7 +140,7 @@ for round_num in range(8):
             })
 
             # 2. Find detected attacks in the FEEDBACK set to learn from
-            predictions = predict(current_model, X_feedback)
+            predictions = predict(current_model, X_feedback, threshold=fixed_thresholds[state_key])
             detected = attacked_feedback_df[(attacked_feedback_df['is_fraud'] == 1) & (predictions == 1)]
 
             # 3. Accumulate knowledge independently

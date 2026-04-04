@@ -100,10 +100,10 @@ if all_transactions:
 
     fraud_count = df['is_fraud'].sum()
     total_count = len(df)
-    print(f"Total transactions: {total_count}, Fraudulent transactions: {fraud_count} ({(fraud_count/total_count)*100:.2f}%)")
+    print(f"\nTotal transactions: {total_count}, Fraudulent transactions: {fraud_count} ({(fraud_count/total_count)*100:.2f}%)")
     print(df[df['is_fraud'] == 1]['fraud_campaign'].value_counts())
-    print("\nMerchant country distribution (legitimate only):")
-    print(df[df['is_fraud'] == 0]['merchant_country'].value_counts())
+    #print("\nMerchant country distribution (legitimate only):")
+    #print(df[df['is_fraud'] == 0]['merchant_country'].value_counts())
 
     # Save to CSV
     output_filename = 'data/synthetic_transactions_v2.csv'

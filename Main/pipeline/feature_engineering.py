@@ -44,7 +44,7 @@ def compute_features(txn, user_history):
     # Feature 7: hour of day
     features['hour_of_day'] = txn['Timestamp'].hour
 
-    # Feature 8: is night (1am-5am)
+    # Feature 8: is night (midnight-5am)
     features['is_night'] = int(txn['Timestamp'].hour in [0, 1, 2, 3, 4, 5])
 
     return features

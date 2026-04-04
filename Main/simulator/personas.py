@@ -66,7 +66,7 @@ class Persona:
                 {"cat": "utility_bill", "day": 6},
             ]
         elif self.user_id.startswith("USER_P_"):
-        # professional: 2 subs + phone + gym monthly + utilities
+            # professional: 2 subs + phone + gym monthly + utilities
             self.recurring = [
                 {"cat": "subscription", "day": 1},
                 {"cat": "subscription", "day": 15},

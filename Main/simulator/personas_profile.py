@@ -80,7 +80,7 @@ STUDENT_PROFILE = {
         },
         'food_delivery': {
             'prob_weekday': create_hourly_prob(peak_hour=22, std_dev=1.5, max_prob=0.7), # Late night peak
-            'prob_weekend': create_hourly_prob(peak_hour=23, std_dev=1.5, max_prob=0.8),
+            'prob_weekend': create_hourly_prob(peak_hour=23, std_dev=1.5, max_prob=0.4),
             'amount_mean': 25.00,
             'amount_std': 5.00
         },
@@ -182,7 +182,7 @@ PROFESSIONAL_PROFILE = {
             'amount_std': 20.00
         },
         'transport_ride_hail': {
-            'prob_weekday': create_hourly_prob(peak_hour=8.5, std_dev=1, max_prob=0.6),
+            'prob_weekday': create_hourly_prob(peak_hour=8.5, std_dev=1, max_prob=0.15),
             'prob_weekend': create_hourly_prob(peak_hour=23, std_dev=2, max_prob=0.3),
             'amount_mean': 22.00,
             'amount_std': 8.00
@@ -194,7 +194,7 @@ PROFESSIONAL_PROFILE = {
             'amount_std': 40.00
         },
         'gym': {
-            'prob_weekday': create_hourly_prob(peak_hour=7, std_dev=1, max_prob=0.5),
+            'prob_weekday': create_hourly_prob(peak_hour=7, std_dev=1, max_prob=0.15),
             'prob_weekend': create_hourly_prob(peak_hour=9, std_dev=1.5, max_prob=0.4),
             'amount_mean': 60.00,
             'amount_std': 10.00
