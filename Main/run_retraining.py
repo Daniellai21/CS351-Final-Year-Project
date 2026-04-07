@@ -22,7 +22,7 @@ holdout_df = raw_test_df.iloc[cutoff_idx:].copy()
 featured_train_df = engineer_features(raw_train_df)
 
 # 4. Set up scaler, attackers, models
-model_names = ['lr_balanced', 'lr_naive', 'rf_balanced', 'rf_naive', 'xgb_balanced', 'xgb_naive']
+model_names = ['lr_balanced', 'rf_balanced', 'xgb_balanced']
 models_original = {name: joblib.load(f'results/models/{name}.pkl') for name in model_names}
 scaler = joblib.load('results/models/scaler.pkl')
 feature_cols = ['amount_zscore', 'transactions_last_1h', 'amount_sum_last_24h', 'log_time_since_last_txn', 'is_new_category', 'is_foreign', 'hour_of_day', 'is_night']
