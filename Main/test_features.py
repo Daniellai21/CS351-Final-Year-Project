@@ -1,7 +1,7 @@
 import pandas as pd
 from pipeline.feature_engineering import engineer_features
 
-df = pd.read_csv('data/synthetic_transactions_v1.csv')
+df = pd.read_csv('data/synthetic_transactions_v2.csv')
 print(f"Raw data shape: {df.shape}")
 
 # Save raw test set before feature engineering
