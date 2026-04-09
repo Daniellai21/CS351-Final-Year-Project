@@ -1,9 +1,18 @@
+"""
+Fraud injection module for generating adversarial transaction patterns.
+
+Injects four distinct fraud campaigns (high-value night, velocity, account takeover,
+geographic anomaly) into the legitimate transaction dataset at a configurable fraud rate.
+Each fraud pattern is dynamically scaled to the victim's behavioural profile.
+"""
+
 import pandas as pd
 import numpy as np
 import random
 import datetime
 from simulator.merchants import MERCHANTS
 
+# High-risk origin countries used for geographic anomaly fraud
 FRAUD_COUNTRIES = ['NG', 'RU', 'BR', 'IN', 'CN', 'RO']
 
 def build_user_profiles(df: pd.DataFrame) -> dict:
@@ -11,7 +20,6 @@ def build_user_profiles(df: pd.DataFrame) -> dict:
     Build a profile for each user from their legitimate transaction history.
     """
     profiles = {}
-
     for user_id, user_df in df.groupby('user_id'):
         profiles[user_id] = {
             'amount_mean': user_df['Transaction amount'].mean(),
@@ -165,7 +173,7 @@ def generate_geographic_anomaly_fraud(user_id: str, profile: dict, df: pd.DataFr
 # Main function to inject fraud into the dataset
 def inject_fraud(df: pd.DataFrame, fraud_rate: float = 0.02) -> pd.DataFrame:
     """
-    Inject fraudulent transactions inot the clean dataframe.
+    Inject fraudulent transactions into the clean dataframe.
     """
     campaigns = {
         'smash_and_grab': ['velocity', 'high_value_night'],

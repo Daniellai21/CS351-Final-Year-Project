@@ -1,3 +1,11 @@
+"""
+Feature engineering pipeline for fraud detection.
+
+Computes 8 user-relative behavioural features from raw transaction data.
+Features are computed sequentially per user to prevent temporal data leakage —
+each transaction only sees the user's history up to that point.
+"""
+
 import pandas as pd
 import numpy as np
 
@@ -49,21 +57,23 @@ def compute_features(txn, user_history):
 
     return features
 
-def engineer_features(df):
+def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+    # enforce chronological ordering
     df['Timestamp'] = pd.to_datetime(df['Timestamp'])
     df = df.sort_values('Timestamp').reset_index(drop=True)
 
     feature_rows = []
 
+    # process each user sequentially
     for user_id, user_txns in df.groupby('user_id'):
         user_history = []
 
-        for idx, txn in user_txns.iterrows():
-            # compute features using user_history
+        for _, txn in user_txns.iterrows():
+            # compute features only past transactions
             features = compute_features(txn, user_history)
             feature_rows.append(features)
 
-            # add current txn to history after computing features
+            # update history after computing features
             user_history.append(txn)
 
     return pd.DataFrame(feature_rows)

@@ -1,3 +1,11 @@
+"""
+Adversarial attacker framework for evasion attacks on fraud detection models.
+
+Implements a polymorphic class hierarchy where each attacker targets specific
+behavioural features. All perturbations operate on raw transaction fields
+(amount, timestamp, category) before feature engineering runs.
+"""
+
 import pandas as pd
 import numpy as np
 from abc import ABC, abstractmethod
@@ -6,6 +14,12 @@ import warnings
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 class BaseAttacker(ABC):
+    """Abstract base class for all evasion attackers.
+
+    Handles the common logic of iterating through transactions per user,
+    maintaining a legitimate transaction history, and only perturbing
+    fraudulent transactions while passing legitimate ones through unchanged.
+    """
     def __init__(self, name: str):
         self.name = name
 
@@ -142,13 +156,8 @@ class ScoreAwareAttacker(BaseAttacker):
         self.model = model
     
     def perturb_transaction(self, txn: dict, user_history: list) -> dict:
-        # get original suspicion score
         original_score = self._get_score(txn, user_history)
-
-        # apply base attacker perturbation
         perturbed_txn = self.base_attacker.perturb_transaction(txn, user_history)
-
-        # get perturbed suspicion score
         perturbed_score = self._get_score(perturbed_txn, user_history)
 
         # only commit if perturbation reduces the score

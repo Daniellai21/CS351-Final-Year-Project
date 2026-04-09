@@ -1,3 +1,12 @@
+"""
+Game-theoretic iterative retraining loop.
+
+Simulates a Stackelberg game between ML fraud defenders and adaptive attackers.
+Each (attacker, model) pair maintains isolated state to prevent cross-contamination.
+Static attackers are pre-computed; the score-aware attacker recomputes each round.
+Equilibrium is detected when recall variance drops below 0.5%.
+"""
+
 # imports
 import pandas as pd
 import numpy as np

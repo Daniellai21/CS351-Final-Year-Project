@@ -1,8 +1,17 @@
+"""
+Transaction simulation engine based on user behavioural personas.
+
+Each Persona is a stateful agent that generates daily transactions based on
+hourly probability distributions, merchant stickiness, recurring payments,
+trip-based transaction clustering, and weekly spending drift.
+"""
+
 import numpy as np
 import random
 import datetime
 from simulator.merchants import MERCHANTS 
 
+# Per-category floor amounts to prevent physically implausible transactions
 CATEGORY_MIN_AMOUNT = {
     'food_delivery': 5.00,
     'dining_out': 5.00,
@@ -19,6 +28,13 @@ CATEGORY_MIN_AMOUNT = {
     }
 
 class Persona:
+    """A simulated card holder that generates realistic transaction patterns.
+
+    Each persona is initialised with a behavioural profile defining spending
+    categories, hourly activity probabilities, and amount distributions.
+    The simulate_day() method produces a day's transactions by evaluating
+    each category at each hour against the profile's probability distribution.
+    """
     def __init__(self, user_id, card_id, profile):
         """Initializes a persona from a behavior profile."""
         self.user_id = user_id
@@ -26,13 +42,16 @@ class Persona:
         self.home_country = "GB"
         self.profile = profile['categories']
         self.merchant_memory = {}
-        # Categories that should only occur once per day
+
+        # Categories capped at one transaction per day
         self.once_per_day_categories = {
             "lunch",
             "groceries",
             "utility_bill",
             "pharmacy"
         }
+
+        # Trip add-on config
         self.trip_config = {
             "trigger_category": "groceries",
             "trigger_prob": 0.55,       
@@ -41,6 +60,8 @@ class Persona:
             "addon_probabilities": [0.6, 0.4],  
             "addon_time_window_minutes": 45     
         }
+
+        # Categoris with right-skewed amount distributions (lognormal))
         self.skewed_amount_categories = {
             "groceries",
             "online_shopping",
@@ -50,6 +71,7 @@ class Persona:
             "subscription",
         }
 
+        # Recurring payment schedule, keyed by user_id prefix to match persona type
         if self.user_id.startswith("USER_C_"):
             # commuter: 2 subs + phone + utilities
             self.recurring = [
@@ -90,12 +112,11 @@ class Persona:
             ]
 
     def simulate_day(self, current_date, transaction_id_counter):
+        """Generate all transactions for a single day based on the persona's behavioural profile."""
         daily_transactions = []
-
         is_weekday = current_date.weekday() < 5
         day_type = 'prob_weekday' if is_weekday else 'prob_weekend'
         used_today = set()
-
         category_counts_today = {}
 
         recurring_txns, transaction_id_counter = self._generate_recurring_payments(
@@ -114,11 +135,12 @@ class Persona:
                 if cat in self.once_per_day_categories and cat in used_today:
                     continue
 
+                # Cap transport to 4 trips per day (2 commutes each way)
                 if cat in {"transport_public", "transport_ride_hail"}:
                     if category_counts_today.get(cat, 0) >= 4:
                         continue
 
-                # Coffee shops are closed 1-4am
+                # Coffee shops are closed between 1-4am
                 if cat == 'coffee' and 1 <= hour <= 4:
                     continue
                 
@@ -188,6 +210,7 @@ class Persona:
         return daily_transactions, transaction_id_counter
     
     def weekly_drift(self, drift_std=0.02):
+        """Apply multiplicative Gaussian noise to spending means to simulate evolving behaviour."""
         for cat, rules in self.profile.items():
             # multiplicative drift factor ~ N(1, drift_std)
             drift_factor = np.random.normal(1.0, drift_std)
@@ -197,6 +220,7 @@ class Persona:
             rules['amount_mean'] = max(0.5, float(new_mean))
 
     def _choose_merchant(self, cat, merchant_details, stickiness=0.8):
+        """Select a merchant with 80% stickiness to previously preferred merchants."""
         ids = merchant_details['ids']
         if not ids:
             return None
@@ -225,6 +249,7 @@ class Persona:
         return datetime.datetime(base_date.year, base_date.month, base_date.day, hour, minute, second)
     
     def _maybe_generate_trip_addons(self, current_date, base_timestamp, used_today, transaction_id_counter):
+        """Simulate correlated purchases (e.g., coffee during a grocery trip) within a time window."""
         cfg = self.trip_config
         extra_txns = []
 
@@ -310,6 +335,7 @@ class Persona:
         return candidate
     
     def _generate_recurring_payments(self, current_date, transaction_id_counter, used_today):
+        """Generate fixed recurring payments (subscriptions, bills) on their scheduled day."""
         txns = []
         day_of_month = current_date.day
 

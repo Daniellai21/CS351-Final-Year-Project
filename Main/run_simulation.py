@@ -1,3 +1,11 @@
+"""
+Main simulation orchestrator.
+
+Generates synthetic credit card transactions for 560 users across 5 persona
+archetypes over a 90-day period, then injects fraud at a 2% rate.
+Output: data/synthetic_transactions_v2.csv
+"""
+
 import pandas as pd
 import datetime
 import numpy as np
@@ -102,8 +110,6 @@ if all_transactions:
     total_count = len(df)
     print(f"\nTotal transactions: {total_count}, Fraudulent transactions: {fraud_count} ({(fraud_count/total_count)*100:.2f}%)")
     print(df[df['is_fraud'] == 1]['fraud_campaign'].value_counts())
-    #print("\nMerchant country distribution (legitimate only):")
-    #print(df[df['is_fraud'] == 0]['merchant_country'].value_counts())
 
     # Save to CSV
     output_filename = 'data/synthetic_transactions_v2.csv'

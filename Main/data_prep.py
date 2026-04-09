@@ -1,3 +1,11 @@
+"""
+Data preparation script.
+
+Splits the synthetic dataset using an 80/20 temporal cutoff (no random splitting
+to prevent look-ahead bias), then applies the feature engineering pipeline.
+Outputs: raw_train/test_transactions.csv, featured_transactions_v2.csv
+"""
+
 import pandas as pd
 from pipeline.feature_engineering import engineer_features
 
