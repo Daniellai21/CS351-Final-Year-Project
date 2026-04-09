@@ -4,8 +4,6 @@ import numpy as np
 def create_hourly_prob(peak_hour, std_dev, max_prob):
     """
     Creates a 24-hr list of probabilities centered around a peak_hour.
-    
-    This uses a Gaussian distribution to create a smooth curve of probabilities, with the highest probability at the specified peak_hour and tapering off as you move away from it. The std_dev controls how quickly the probabilities drop off, and max_prob sets the maximum probability at the peak.
     """
     hours = np.arange(24)
     # Use a Gaussian (normal distribution) to create a smooth curve

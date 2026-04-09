@@ -1,5 +1,6 @@
 """
-Contains a central database of all merchants available in the simulation.
+Central registry of all merchants used in the simulation. 
+Each category maps to its merchant IDs, payment channel, and country. 
 """
 
 MERCHANTS = {
