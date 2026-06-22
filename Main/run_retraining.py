@@ -18,8 +18,8 @@ from pipeline.defender import predict
 from attacker.attacker import AmountScalingAttacker, TimeShiftAttacker, CategoryMimicryAttacker, VelocitySpacingAttacker, CombinedAttacker, ScoreAwareAttacker
 
 # 1. Load raw train and test data
-raw_train_df = pd.read_csv('data/raw_train_transactions.csv')
-raw_test_df = pd.read_csv('data/raw_test_transactions.csv')
+raw_train_df = pd.read_csv('data/demo_raw_train_transactions.csv')
+raw_test_df = pd.read_csv('data/demo_raw_test_transactions.csv')
 raw_test_df = raw_test_df.sort_values('Timestamp').reset_index(drop=True) # Ensure chronological order for time-based attacks
 
 # 2. Split test into Feedback (for learning) and Holdout (for final evaluation)
@@ -220,5 +220,5 @@ for round_num in range(8):
 
 # save results
 results_df = pd.DataFrame(results)
-results_df.to_csv('results/retraining_results.csv', index=False)
+results_df.to_csv('results/demo_retraining_results.csv', index=False)
 print("Retraining results saved!")

@@ -10,7 +10,7 @@ import pandas as pd
 from attacker.attacker import AmountScalingAttacker, TimeShiftAttacker, CategoryMimicryAttacker, CombinedAttacker, VelocitySpacingAttacker
 from pipeline.feature_engineering import engineer_features
 
-df = pd.read_csv('data/raw_test_transactions.csv')
+df = pd.read_csv('data/demo_raw_test_transactions.csv')
 print(f"Raw data shape: {df.shape}")
 
 attackers = [
@@ -27,7 +27,7 @@ for attacker in attackers:
     # apply feature engineering
     attacked_df = engineer_features(attacked_df)
     # save with a meaningful filename using attacker.name
-    attacked_df.to_csv(f'data/attacked_transactions_{attacker.name}.csv', index=False)
+    attacked_df.to_csv(f'data/demo_attacked_transactions_{attacker.name}.csv', index=False)
 
     print(f"Attacked data shape: {attacked_df.shape}")
     print(attacked_df.head())

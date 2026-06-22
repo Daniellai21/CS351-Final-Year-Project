@@ -21,11 +21,11 @@ random.seed(SEED)
 # INITIALIZING PERSONAS
 print("Initializing personas...")
 all_personas = []
-NUM_COMMUTERS = 150
-NUM_STUDENTS = 150
-NUM_HOMEBODIES = 100
-NUM_PROFESSIONALS = 80
-NUM_RETIREES = 80
+NUM_COMMUTERS = 10
+NUM_STUDENTS = 10
+NUM_HOMEBODIES = 10
+NUM_PROFESSIONALS = 5
+NUM_RETIREES = 5
 
 for i in range(NUM_COMMUTERS):
     all_personas.append(
@@ -67,7 +67,7 @@ transaction_id_counter = 1
 
 # SIMULATION LOOP
 start_date = datetime.date(2025, 1, 1)
-NUM_DAYS = 90
+NUM_DAYS = 30
 print(f"Starting simulation for {len(all_personas)} personas over {NUM_DAYS} days...")
 
 for day_num in range(NUM_DAYS):
@@ -112,7 +112,7 @@ if all_transactions:
     print(df[df['is_fraud'] == 1]['fraud_campaign'].value_counts())
 
     # Save to CSV
-    output_filename = 'data/synthetic_transactions_v2.csv'
+    output_filename = 'data/demo_synthetic_transactions.csv'
     df.to_csv(output_filename, index=False)
     print(f"\nData successfully saved to {output_filename}")
 else:
