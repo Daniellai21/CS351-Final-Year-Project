@@ -90,7 +90,7 @@ print(f"Simulation complete. Generated {len(all_transactions)} total transaction
 # CREATE AND SAVE DATAFRAME
 if all_transactions:
     df = pd.DataFrame(all_transactions)
-    df = inject_fraud(df, 0.02) 
+    df = inject_fraud(df, 0.02, NUM_DAYS) 
 
     # Columns reordering
     column_order = [

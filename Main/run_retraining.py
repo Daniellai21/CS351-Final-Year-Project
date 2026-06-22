@@ -11,11 +11,15 @@ Equilibrium is detected when recall variance drops below 0.5%.
 import pandas as pd
 import numpy as np
 import joblib
+import random
 from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score
 from sklearn.metrics import precision_recall_curve
 from pipeline.feature_engineering import engineer_features
 from pipeline.defender import predict
 from attacker.attacker import AmountScalingAttacker, TimeShiftAttacker, CategoryMimicryAttacker, VelocitySpacingAttacker, CombinedAttacker, ScoreAwareAttacker
+
+np.random.seed(42)
+random.seed(42)
 
 # 1. Load raw train and test data
 raw_train_df = pd.read_csv('data/demo_raw_train_transactions.csv')

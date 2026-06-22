@@ -33,7 +33,7 @@ def build_user_profiles(df: pd.DataFrame) -> dict:
     return profiles
 
 # Fraud Pattern 1: High Value Night Fraud
-def generate_high_value_night_fraud(user_id: str, profile: dict, df: pd.DataFrame) -> dict:
+def generate_high_value_night_fraud(user_id: str, profile: dict, df: pd.DataFrame, num_days: int) -> dict:
     """
     Generate a high value transaction at an unusual hour at a novel merchant.
     """
@@ -48,7 +48,7 @@ def generate_high_value_night_fraud(user_id: str, profile: dict, df: pd.DataFram
     merchant_details = MERCHANTS[merchant_cat]
 
     start_date = datetime.date(2025, 1, 1)
-    random_days = random.randint(0, 89)
+    random_days = random.randint(0, NUM_DAYS - 1)
     fraud_date = start_date + datetime.timedelta(days=random_days)
 
     return {
@@ -66,7 +66,7 @@ def generate_high_value_night_fraud(user_id: str, profile: dict, df: pd.DataFram
     }
 
 # Fraud Pattern 2: Velocity Fraud
-def generate_velocity_fraud(user_id: str, profile: dict, df: pd.DataFrame) -> list:
+def generate_velocity_fraud(user_id: str, profile: dict, df: pd.DataFrame, num_days: int) -> list:
     """
     Generate multiple transactions in rapid succession on the same card
     """
@@ -74,7 +74,7 @@ def generate_velocity_fraud(user_id: str, profile: dict, df: pd.DataFrame) -> li
     hour = profile['typical_hour']
 
     start_date = datetime.date(2025, 1, 1)
-    random_days = random.randint(0, 89)
+    random_days = random.randint(0, NUM_DAYS - 1)
     fraud_date = start_date + datetime.timedelta(days=random_days)
     base_time = datetime.datetime(fraud_date.year, fraud_date.month, fraud_date.day, hour, random.randint(0, 59), 0)
 
@@ -105,7 +105,7 @@ def generate_velocity_fraud(user_id: str, profile: dict, df: pd.DataFrame) -> li
     return transactions
 
 # Fraud Pattern 3: Account Takeover Fraud
-def generate_account_takeover_fraud(user_id: str, profile: dict, df: pd.DataFrame) -> dict:
+def generate_account_takeover_fraud(user_id: str, profile: dict, df: pd.DataFrame, num_days: int) -> dict:
     """
     Generate a transaction in a category the user has never used before.
     """
@@ -121,7 +121,7 @@ def generate_account_takeover_fraud(user_id: str, profile: dict, df: pd.DataFram
     merchant_cat = random.choice(list(new_categories))
     merchant_details = MERCHANTS[merchant_cat]
     start_date = datetime.date(2025, 1, 1)
-    random_days = random.randint(0, 89)
+    random_days = random.randint(0, NUM_DAYS - 1)
     fraud_date = start_date + datetime.timedelta(days=random_days)
 
     return {
@@ -139,7 +139,7 @@ def generate_account_takeover_fraud(user_id: str, profile: dict, df: pd.DataFram
     }
 
 # Fraud Pattern 4: Geographic Anomaly Fraud
-def generate_geographic_anomaly_fraud(user_id: str, profile: dict, df: pd.DataFrame) -> dict:
+def generate_geographic_anomaly_fraud(user_id: str, profile: dict, df: pd.DataFrame, num_days: int) -> dict:
     """
     Generate a transaction from a country the user has never transacted from before.
     """
@@ -151,7 +151,7 @@ def generate_geographic_anomaly_fraud(user_id: str, profile: dict, df: pd.DataFr
     hour = (profile['typical_hour'] + random.randint(-2, 2)) % 24
     fraud_country = random.choice(FRAUD_COUNTRIES)
     start_date = datetime.date(2025, 1, 1)
-    random_days = random.randint(0, 89)
+    random_days = random.randint(0, NUM_DAYS - 1)
     fraud_date = start_date + datetime.timedelta(days=random_days)
     merchant_cat = random.choice(list(MERCHANTS.keys()))
     merchant_details = MERCHANTS[merchant_cat]
@@ -171,7 +171,7 @@ def generate_geographic_anomaly_fraud(user_id: str, profile: dict, df: pd.DataFr
     }
 
 # Main function to inject fraud into the dataset
-def inject_fraud(df: pd.DataFrame, fraud_rate: float = 0.02) -> pd.DataFrame:
+def inject_fraud(df: pd.DataFrame, fraud_rate: float = 0.02, num_days: int = 90) -> pd.DataFrame:
     """
     Inject fraudulent transactions into the clean dataframe.
     """
@@ -206,7 +206,7 @@ def inject_fraud(df: pd.DataFrame, fraud_rate: float = 0.02) -> pd.DataFrame:
             if len(fraud_transactions) >= target_fraud_count:
                 break
             func = pattern_functions[pattern]
-            result = func(user_id, profile, df)
+            result = func(user_id, profile, df, num_days)
             if isinstance(result, list):
                 for txn in result:
                     txn['fraud_campaign'] = campaign

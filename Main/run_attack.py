@@ -7,8 +7,13 @@ Output: data/attacked_transactions_{attacker_name}.csv
 """
 
 import pandas as pd
+import numpy as np
+import random
 from attacker.attacker import AmountScalingAttacker, TimeShiftAttacker, CategoryMimicryAttacker, CombinedAttacker, VelocitySpacingAttacker
 from pipeline.feature_engineering import engineer_features
+
+np.random.seed(42)
+random.seed(42)
 
 df = pd.read_csv('data/demo_raw_test_transactions.csv')
 print(f"Raw data shape: {df.shape}")
